@@ -1,0 +1,29 @@
+application: moviegraph
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /static
+  static_dir: static
+  
+- url: /arbor-v0.92
+  static_dir: arbor-v0.92
+
+- url: .*
+  script: main.app
+
+libraries:
+- name: webapp2
+  version: latest
+- name: jinja2
+  version: latest
+    
+builtins:
+- remote_api: on
+

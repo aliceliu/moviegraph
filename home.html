@@ -1,0 +1,68 @@
+<html>
+<head>
+<title> Movie Graph </title>
+<script>
+	var myMovies;
+	function get_movies(accessToken) {
+	  FB.api('/me/movies', function(response) {
+        myMovies = response.data;
+        alert(myMovies);
+        
+        alert(accessToken);
+        alert(url);
+      });
+  	}
+</script>
+<body>
+	<div id="fb-root"></div>
+	<script>
+		window.fbAsyncInit = function() {
+			// init the FB JS SDK
+			FB.init({
+			  appId      : '313608985448976',                        // App ID from the app dashboard
+			  //channelUrl : '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel file for x-domain comms
+			  status     : true,                                 // Check Facebook Login status
+			  xfbml      : true,                                  // Look for social plugins on the page
+			  //oauth  : true
+			});
+		
+			// Additional initialization code such as adding Event Listeners goes here
+			FB.Event.subscribe('auth.authResponseChange', function(response) {
+				alert("status " + response.status);
+	   			//window.location.reload();
+	   		});
+	   
+			FB.getLoginStatus(function(response) {
+			  if (response.status == "connected") {
+				// logged in and connected user, someone you know
+				// Get friends who like the same movie as me
+				var accessToken = response.authResponse.accessToken;
+				get_movies(accessToken);
+				document.getElementById('login').innerHTML
+				  ='<a href="#" onclick="FB.logout();">Logout</a><br/>';
+			  } else {
+				document.getElementById('login').innerHTML
+				  ='<fb:login-button show-faces="true" width="200"' 
+				  + ' max-rows="1" perms="user_likes, friends_likes">'
+				  + '</fb:login-button>';
+				FB.XFBML.parse();
+			  }
+			});
+		};
+	
+	  	// Load the SDK asynchronously
+		(function(d, s, id){
+			 var js, fjs = d.getElementsByTagName(s)[0];
+			 if (d.getElementById(id)) {return;}
+			 js = d.createElement(s); js.id = id;
+			 js.src = "//connect.facebook.net/en_US/all.js";
+			 fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));
+	      
+	</script>
+	<h1> Movie Graph </h1>
+	<div id="login"></div>
+	<div id="movies"></div>
+</body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+</html>
