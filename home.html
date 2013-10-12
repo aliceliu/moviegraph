@@ -16,6 +16,7 @@
 	
 		var that = {
 		  init:function(system){
+		  
 			//
 			// the particle system will call the init function once, right before the
 			// first frame is to be drawn. it's a good place to set up the canvas and
@@ -31,7 +32,7 @@
 			particleSystem.screenPadding(80) // leave an extra 80px of whitespace per side
 			
 			// set up some event handlers to allow for node-dragging
-			that.initMouseHandling()
+			that.initMouseHandling();
 		  },
 		  
 		  redraw:function(){
@@ -134,18 +135,18 @@
 
 	  $(document).ready(function(){
 		sys = arbor.ParticleSystem(1000, 600, 0.5) // create the system with sensible repulsion/stiffness/friction
-		sys.renderer = Renderer("#viewport") // our newly created renderer will have its .init() method called shortly by sys...
+		sys.renderer = Renderer("#viewport"); // our newly created renderer will have its .init() method called shortly by sys...
 	  })
 
 	function get_movies(accessToken) {
-		//var user = sys.addNode('You', {'type':'user', 'name':'You'})
 		FB.api('/me/movies', function(response) {
-		console.log('asd');
 			myMovies = response.data;
+			var user = sys.addNode('you', {type:'user', name:'You'});
+			
 			for (var i = 0; i < myMovies.length; i++) {
-				//newNode = sys.addNode(myMovies[i].name, {'type':'movie', 'name':myMovies[i].name});
-				//sys.addEdge(user, newNode);
-				sys.addEdge('You', myMovies[i].name);
+				var movie = myMovies[i];
+				var node = sys.addNode(movie.name, {type:'movie', name:movie.name});
+				sys.addEdge(user, node);
 			}
 		});
 	}
