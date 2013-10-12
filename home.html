@@ -1,17 +1,23 @@
 <html>
 <head>
 <title> Movie Graph </title>
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
 <script>
 	var myMovies;
+
 	function get_movies(accessToken) {
 	  FB.api('/me/movies', function(response) {
         myMovies = response.data;
         alert(myMovies);
         
         alert(accessToken);
-        alert(url);
       });
   	}
+  	
+  	$(document).ready(function(){
+  		var sys = arbor.ParticleSystem(); // create the system with sensible repulsion/stiffness/friction
+  	});
+  	
 </script>
 <body>
 	<div id="fb-root"></div>
@@ -64,5 +70,6 @@
 	<div id="login"></div>
 	<div id="movies"></div>
 </body>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+<script src="arbor-v0.92/lib/arbor.js"></script>
 </html>
