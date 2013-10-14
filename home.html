@@ -6,12 +6,17 @@
 <script src="arbor-v0.92/lib/arbor.js"></script>
 <script>
 	var myMovies;
+	var myFriends;
+	var movieDict = {};
+	var canvas;
+	var ctx;
+	var drawInterval;
 
   	var Renderer = function(canvas){
-		var canvas = $(canvas).get(0);
+		canvas = $(canvas).get(0);
 		canvas.width = $(window).width();
 		canvas.height = $(window).height();
-		var ctx = canvas.getContext("2d");
+		ctx = canvas.getContext("2d");
 		var particleSystem
 	
 		var that = {
@@ -60,6 +65,7 @@
 			  ctx.moveTo(pt1.x, pt1.y)
 			  ctx.lineTo(pt2.x, pt2.y)
 			  ctx.stroke()
+
 			})
 	
 			particleSystem.eachNode(function(node, pt){
@@ -73,9 +79,16 @@
 			  ctx.clearRect(pt.x-w/2, pt.y-7, w,14)
 			  ctx.font = "bold 11px Arial"
 			  ctx.textAlign = "center"
-			  ctx.fillStyle = "#888888"
+			  if (node.name == 'You') {
+			  	ctx.fillStyle = "#8ac90c";
+			  }
+			  else if (node.data.type == 'movie') {
+			  	ctx.fillStyle = "#888888";
+			  } else {
+			  	ctx.fillStyle = "#0039a6";
+			  }
 			  ctx.fillText(label||"", pt.x, pt.y+4)
-          
+			  
 			})    			
 		  },
 		  
@@ -86,15 +99,15 @@
 			// set up a handler object that will initially listen for mousedowns then
 			// for moves and mouseups while dragging
 			var handler = {
+			  
 			  clicked:function(e){
 				var pos = $(canvas).offset();
 				_mouseP = arbor.Point(e.pageX-pos.left, e.pageY-pos.top)
 				dragged = particleSystem.nearest(_mouseP);
 	
 				if (dragged && dragged.node !== null){
-				  // while we're dragging, don't let physics move the node
-				  dragged.node.fixed = true
-				}
+				  dragged.node.fixed = false
+				} 
 	
 				$(canvas).bind('mousemove', handler.dragged)
 				$(window).bind('mouseup', handler.dropped)
@@ -114,7 +127,7 @@
 			  },
 	
 			  dropped:function(e){
-				if (dragged===null || dragged.node===undefined) return
+				if (dragged.node===undefined) return
 				if (dragged.node !== null) dragged.node.fixed = false
 				dragged.node.tempMass = 1000
 				dragged = null
@@ -134,24 +147,54 @@
 	  }    
 
 	  $(document).ready(function(){
-		sys = arbor.ParticleSystem(1000, 600, 0.5) // create the system with sensible repulsion/stiffness/friction
+		sys = arbor.ParticleSystem(1000, 600, 0.8) // create the system with sensible repulsion/stiffness/friction
 		sys.renderer = Renderer("#viewport"); // our newly created renderer will have its .init() method called shortly by sys...
 	  })
 
-	function get_movies(accessToken) {
+	function get_movies() {
 		FB.api('/me/movies', function(response) {
 			myMovies = response.data;
-			var user = sys.addNode('you', {type:'user', name:'You'});
+			var user = sys.addNode('You', {type:'user', name:'You'});
 			
 			for (var i = 0; i < myMovies.length; i++) {
 				var movie = myMovies[i];
 				var node = sys.addNode(movie.name, {type:'movie', name:movie.name});
+				
 				sys.addEdge(user, node);
 			}
 		});
 	}
 	
-	  
+	function get_friends(callback) {
+		FB.api('/me/friends', function(response) {
+			myFriends = response.data;
+			callback();
+        });
+	}
+	
+	function get_friend_movies() {
+		for(var i = 0; i < myFriends.length; i++) {
+          		FB.api('/'+myFriends[i].id+'/movies', function(response2) {
+          			var friendsMovies = response2.data;
+          			
+          			for (var j = 0; j < friendsMovies.length; j++) {
+          				/*if (friendsMovies[j].name in movieDict) {
+          					movieDict[friendsMovies[j].name].push(myFriends[i]);
+          					
+          				} else {
+          					movieDict[friendsMovies[j].name] = new Array(myFriends[i]);
+          				}*/
+          				for (var k = 0; k < myMovies.length; k++) {
+          					if (friendsMovies[j].name == myMovies[k].name) {
+          						var f = sys.addNode(myFriends[i].name, {type:'user', name:myFriends[i].name});
+								sys.addEdge(myMovies[j].name, f.name);
+								console.log(myMovies[j].name, f.name);
+          					}
+          				}
+          			}
+          		}); 
+          }
+	}
 
 </script>
 <body>
@@ -163,7 +206,6 @@
 			  appId      : '313608985448976',                        // App ID from the app dashboard
 			  status     : true,                                 // Check Facebook Login status
 			  xfbml      : true,                                  // Look for social plugins on the page
-			  oauth  : true
 			});
 		
 			// Additional initialization code such as adding Event Listeners goes here
@@ -176,7 +218,16 @@
 				// logged in and connected user, someone you know
 				// Get friends who like the same movie as me
 				var accessToken = response.authResponse.accessToken;
-				get_movies(accessToken);
+				
+				get_movies();
+				get_friends(get_friend_movies);
+				
+				
+				/*drawInterval = setInterval(function(){
+					draw();
+				},1000);*/
+
+				
 				document.getElementById('login').innerHTML
 				  ='<a href="#" onclick="FB.logout();">Logout</a><br/>';
 			  } else {
